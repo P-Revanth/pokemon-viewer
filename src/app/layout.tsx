@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Caudex } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +11,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const caudex = Caudex({
+  variable: "--font-caudex",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,9 +31,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${caudex.variable}`}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${caudex.className}`}
       >
         {children}
       </body>
