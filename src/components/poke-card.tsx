@@ -48,7 +48,7 @@ export default function PokemonCard({ name, image, types }: PokemonCardProps) {
                     backgroundColor: 'rgba(0, 0, 0, 0.75)',
                     opacity: 0.92,
                 }}>
-                <Link href={`/pokemons/${name}`} className="text-white text-lg font-semibold flex items-center justify-center h-full w-full">
+                <Link href={`/pokemons/${(encodeURIComponent(name))}`} className="text-white text-lg font-semibold flex items-center justify-center h-full w-full">
                     <div className="flex h-full w-full items-center justify-center">
                         <img src="/images/pokeball.svg" alt="Pokeball" className="w-8 h-8" />
                     </div>

@@ -114,9 +114,10 @@ export default function Pokemons() {
                             onChange={(e) => setPokemonName(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                    if (pokemonName.trim() !== "") {
+                                    if (pokemonName.trim() !== "" || pokemonData.length > 0) {
                                         const filteredPokemon = pokemonData.filter(pokemon =>
-                                            pokemon.name.toLowerCase().includes(pokemonName.toLowerCase())
+                                            pokemon.name.toLowerCase().includes(pokemonName.toLowerCase()) ||
+                                            (pokemon.types && pokemon.types.some((type: string) => type.toLowerCase().includes(pokemonName.toLowerCase())))
                                         );
                                         setPokemonData(filteredPokemon);
                                     } else {
@@ -125,7 +126,7 @@ export default function Pokemons() {
                                 }
                             }}
                             required
-                            placeholder="Search for a Pokemon"
+                            placeholder="Search by pokemon name or type"
                             className="text-md font-semibold pr-4 pl-4 w-2/3 border-none outline-none bg-transparent text-white"
                         />
                     </div>

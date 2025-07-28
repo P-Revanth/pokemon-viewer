@@ -30,7 +30,7 @@ export default function Page() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="text-md border-1 font-semibold border-gray-300 rounded-md p-3 pr-4 pl-4 w-2/3" />
-        {error && <p className="text-red-500"><sup>*</sup>{error}</p>}
+        {error && <p className="text-red-500"><sup className="font-bold">*</sup>{error}</p>}
         <div className="flex items-center justify-center border-1 p-2 border-gray-300 rounded-full bg-[#642665] hover:bg-[#7a2e7a] transition-colors cursor-pointer w-2/7" onClick={handleClick}>
           <img src="/images/pokeball.svg" alt="Pokeball" className="w-8 h-8" />
           <button className="text-white p-2 cursor-pointer" id="discover-button" onClick={handleClick}>
