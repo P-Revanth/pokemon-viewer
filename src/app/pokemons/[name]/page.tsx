@@ -1,6 +1,7 @@
 "use client";
 import React, { use } from "react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import BackButton from "@/components/backbtn";
 import ProgressBar from "@/components/progressBar";
 
@@ -9,6 +10,7 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
     const { name } = use(params);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [typeDamageData, setTypeDamageData] = useState<any[]>([]);
 
     const [activeTab, setActiveTab] = useState<string>('Forms');
 
@@ -59,11 +61,26 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
                 const pokeImage = data.sprites.other['official-artwork'].front_default ||
                     data.sprites.front_default ||
                     `https://img.pokemondb.net/artwork/${name}.jpg`;
+
+                const pokemonTypes = data.types.map((type: any) => type.type.name);
+
+                const typeDamagePromises = pokemonTypes.map(async (typeName: string) => {
+                    const typeResponse = await fetch(`https://pokeapi.co/api/v2/type/${typeName.toLowerCase()}/`);
+                    if (!typeResponse.ok) {
+                        console.warn(`Failed to fetch damage details for type ${typeName}, skipping.`);
+                        return null;
+                    }
+                    const typeData = await typeResponse.json();
+                    return typeData;
+                });
+
+                const fetchedTypeDamageData = (await Promise.all(typeDamagePromises)).filter(Boolean); // Filter out nulls
+                setTypeDamageData(fetchedTypeDamageData); // Set the fetched type damage data
                 // const pokemonSpecies = data.species.name;
                 // console.log(`Pokemon Species: ${pokemonSpecies}`);
                 setLoading(false);
                 setError(null);
-                data.image = pokeImage; // Add image to data
+                data.image = pokeImage;
 
                 setData(data);
                 console.log("Pokemon Details:", data);
@@ -74,9 +91,14 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
         fetchPokemonDetails();
     }, [name]);
 
+    const router = useRouter();
+    const handleBackClick = () => {
+        router.push("/pokemons");
+    };
+    
     return (
         <div className="flex flex-col h-screen">
-            <BackButton onClick={() => window.history.back()} />
+            <BackButton onClick={handleBackClick} />
             <div className="flex border-1 border-gray-300 rounded-lg shadow-2xl m-4 p-6 h-full">
                 {loading && <p className="text-center text-gray-500">Loading...</p>}
                 <div className="flex flex-col h-full w-1/3 gap-4">
@@ -114,28 +136,67 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
                         </ul>
                     </div>
 
-                    <div className="w-full h-full p-10 bg-white mt-4 min-h-[300px] text-lg">
+                    <div className="w-full h-full p-10 pb-5 mt-4 min-h-[300px] text-lg">
                         {activeTab === 'Abilities' && (
-                            <div>
-                                <h2 className="text-4xl font-bold mb-4">Abilities</h2>
+                            <div className="flex flex-col h-full pr-15 pl-15">
+                                <h2 className="text-4xl font-bold mb-3">Abilities</h2>
                                 {data?.abilities && data.abilities.length > 0 ? (
-                                    data.abilities.map((ability: any) => (
-                                        <p key={ability.ability.name} className="capitalize mb-1">{ability.ability.name}</p>
-                                    ))
+                                    <div className="text-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 h-fit w-full items-center justify-center">
+                                        {data.abilities.map((ability: any) => (
+                                            <p key={ability.ability.name} className="capitalize border border-gray-300 p-2 rounded-full text-center">{ability.ability.name}</p>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <p>No specific ability data available for {data?.name}.</p>
+                                )}
+                                <h3 className="text-2xl font-semibold mt-3">Type Damage:</h3>
+                                {typeDamageData.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
+                                        {typeDamageData.map((typeInfo: any) => (
+                                            <div key={typeInfo.name} className="flex flex-col p-4 border border-gray-300 rounded-lg mt-3 gap-1">
+                                                <h4 className={`text-md mb-2 capitalize border border-gray-300 rounded-full w-1/4 text-center`}>{typeInfo.name}</h4>
+                                                <p className="text-md mb-1">Double Damage To:</p>
+                                                <div className="flex text-xs capitalize gap-2 text-center">{typeInfo.damage_relations.double_damage_to.map((type: any) => {
+                                                    return <p key={type.name} className="capitalize border border-gray-300 p-1 rounded-full w-1/6">{type.name}</p>;
+                                                })}</div>
+                                                <p className="text-md capitalize mb-1 mt-1">Half Damage To:</p>
+                                                <div className="flex text-xs capitalize gap-2 text-center">{typeInfo.damage_relations.half_damage_to.map((type: any) => {
+                                                    return <p key={type.name} className="capitalize border border-gray-300 p-1 rounded-full w-1/6">{type.name}</p>;
+                                                })}</div>
+                                                <p className="text-md capitalize mb-1 mt-1">Double Damage From:</p>
+                                                <div className="flex text-xs capitalize gap-2 text-center">{typeInfo.damage_relations.double_damage_from.map((type: any) => {
+                                                    return <p key={type.name} className="capitalize border border-gray-300 p-1 rounded-full w-1/6">{type.name}</p>;
+                                                })}</div>
+                                                <p className="text-md capitalize mb-1 mt-1">Half Damage From:</p>
+                                                <div className="flex text-xs capitalize gap-2 text-center">{typeInfo.damage_relations.half_damage_from.map((type: any) => {
+                                                    return <p key={type.name} className="capitalize border border-gray-300 p-1 rounded-full w-1/6">{type.name}</p>;
+                                                })}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>No type damage data available for {data?.name}.</p>
                                 )}
                             </div>
                         )}
 
                         {activeTab === 'Details' && (
-                            <div>
-                                <h2 className="text-4xl font-bold mb-4">Details</h2>
-                                <p className="mb-1">Height: {data?.height / 10} m</p>
-                                <p className="mb-1">Weight: {data?.weight / 10} kg</p>
-                                <p className="mb-1">Base Experience: {data?.base_experience}</p>
-                                <p className="capitalize mb-1">Species: {data?.species?.name}</p>
-                                <p className="mb-1">Order: {data?.order}</p>
+                            <div className="flex flex-col h-full pr-15 pl-15">
+                                <h2 className="text-4xl font-bold mb-6">Details</h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+                                    <p className="capitalize text-2xl">Height:</p>
+                                    <p className="capitalize text-2xl">{data?.height ? `${data.height / 10} m` : 'N/A'}</p>
+                                    <p className="capitalize text-2xl">Weight:</p>
+                                    <p className="capitalize text-2xl">{data?.weight ? `${data.weight / 10} kg` : 'N/A'}</p>
+                                    <p className="capitalize text-2xl">Base Experience:</p>
+                                    <p className="capitalize text-2xl">{data?.base_experience || 'N/A'}</p>
+                                    <p className="capitalize text-2xl">Species:</p>
+                                    <p className="capitalize text-2xl">{data?.species.name || 'N/A'}</p>
+                                    <p className="capitalize text-2xl">Order:</p>
+                                    <p className="capitalize text-2xl">{data?.order || 'N/A'}</p>
+                                    <p className="capitalize text-2xl">Is Default:</p>
+                                    <p className="capitalize text-2xl">{data?.is_default ? 'Yes' : 'No'}</p>
+                                </div>
                             </div>
                         )}
 

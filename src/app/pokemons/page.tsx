@@ -141,7 +141,6 @@ export default function Pokemons() {
                     </div>
                 </div>
                 {loading && <p className="text-3xl w-full justify-center items-center">Loading...</p>}
-                {error && <p className="text-red-500 mt-2"><sup>*</sup>{error}</p>}
                 <div className="flex items-center justify-center w-full h-full">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-20 pt-10 w-full h-full">
                         {currentPokemons && currentPokemons.map((pokemon: { name: string; image: string; types?: string[] }) => (
