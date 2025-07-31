@@ -2,12 +2,19 @@
 import React, { use } from "react";
 import { useEffect, useState } from "react";
 import BackButton from "@/components/backbtn";
+import ProgressBar from "@/components/progressBar";
 
 export default function PokemonDetails({ params }: { params: Promise<{ name: string }> }) {
     const [data, setData] = useState<any>(null);
     const { name } = use(params);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [activeTab, setActiveTab] = useState<string>('Forms');
+
+    const handleTabClick = (tabName: string) => {
+        setActiveTab(tabName);
+    };
 
     const typeColor: { [key: string]: string } = {
         fire: "bg-red-500",
@@ -72,7 +79,7 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
             <BackButton onClick={() => window.history.back()} />
             <div className="flex border-1 border-gray-300 rounded-lg shadow-2xl m-4 p-6 h-full">
                 {loading && <p className="text-center text-gray-500">Loading...</p>}
-                <div className="flex flex-col h-full gap-4">
+                <div className="flex flex-col h-full w-1/3 gap-4">
                     <h1 className="text-2xl font-semibold text-gray-400 mt-4">
                         {`#${data?.id}`}
                     </h1>
@@ -90,7 +97,81 @@ export default function PokemonDetails({ params }: { params: Promise<{ name: str
                         <img src={data?.image} alt={data?.name} className="w-96 h-96" />
                     </div>
                 </div>
-                
+                <div className="flex flex-col w-2/3 p-4 mt-30"> {/* Increased max-w for tabs area */}
+                    <div className="flex justify-center w-full"> {/* Centered tabs */}
+                        <ul className="flex flex-wrap gap-15 text-lg font-semibold items-center justify-center w-full p-4">
+                            {['Abilities', 'Details', 'Stats', 'Moves'].map((tabName) => (
+                                <li
+                                    key={tabName}
+                                    className={`flex-shrink-0 cursor-pointer pb-2 transition-colors duration-200
+                                    ${activeTab === tabName ? 'border-b-4 border-white text-white' : 'text-gray-300 hover:text-white'}`
+                                    }
+                                    onClick={() => handleTabClick(tabName)}
+                                >
+                                    {tabName}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="w-full h-full p-10 bg-white mt-4 min-h-[300px] text-lg">
+                        {activeTab === 'Abilities' && (
+                            <div>
+                                <h2 className="text-4xl font-bold mb-4">Abilities</h2>
+                                {data?.abilities && data.abilities.length > 0 ? (
+                                    data.abilities.map((ability: any) => (
+                                        <p key={ability.ability.name} className="capitalize mb-1">{ability.ability.name}</p>
+                                    ))
+                                ) : (
+                                    <p>No specific ability data available for {data?.name}.</p>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'Details' && (
+                            <div>
+                                <h2 className="text-4xl font-bold mb-4">Details</h2>
+                                <p className="mb-1">Height: {data?.height / 10} m</p>
+                                <p className="mb-1">Weight: {data?.weight / 10} kg</p>
+                                <p className="mb-1">Base Experience: {data?.base_experience}</p>
+                                <p className="capitalize mb-1">Species: {data?.species?.name}</p>
+                                <p className="mb-1">Order: {data?.order}</p>
+                            </div>
+                        )}
+
+                        {activeTab === 'Stats' && (
+                            <div className="flex flex-col h-full pr-15 pl-15">
+                                <h2 className="text-4xl font-bold mb-6">Base Stats</h2>
+                                {data?.stats && data.stats.length > 0 ? (
+                                    data.stats.map((statInfo: any) => (
+                                        <ProgressBar
+                                            key={statInfo.stat.name}
+                                            label={statInfo.stat.name}
+                                            value={statInfo.base_stat}
+                                        />
+                                    ))
+                                ) : (
+                                    <p>No stat data available for {data?.name}.</p>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'Moves' && (
+                            <div className="flex flex-col h-full pr-15 pl-15">
+                                <h2 className="text-4xl font-bold mb-6">Moves</h2>
+                                {data?.moves && data.moves.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 h-full items-center justify-center">
+                                        {data.moves.slice(0, 20).map((moveInfo: any) => (
+                                            <p key={moveInfo.move.name} className="capitalize text-md border border-gray-400 rounded-full text-center p-2">{moveInfo.move.name}</p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p>No move data available for {data?.name}.</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     )
